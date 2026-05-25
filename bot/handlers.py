@@ -89,6 +89,10 @@ class Handlers:
     # ================= START =================
     async def start(self, m: Message):
 
+        await self.db.add_user(
+    m.from_user.id
+        )
+
         text = (
             "👋 <b>Welcome to English Learning Bot</b>\n\n"
 
@@ -217,6 +221,12 @@ class Handlers:
 
     # ================= WORD =================
     async def word(self, m: Message):
+
+        await self.db.log(
+    m.from_user.id,
+    word,
+    translation
+        )
 
         word = m.text.lower().strip()
 
