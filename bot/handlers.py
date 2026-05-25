@@ -222,7 +222,7 @@ class Handlers:
     # ================= WORD =================
     async def word(self, m: Message):
 
-        await self.db.log(
+        await self.db.log_word(
     m.from_user.id,
     word,
     translation
@@ -279,7 +279,7 @@ class Handlers:
             source = "🌐 <b>From API</b>"
 
         # ---------- DATABASE ----------
-        await self.db.log(
+        await self.db.log_word(
             m.from_user.id,
             word,
             translation

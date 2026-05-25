@@ -1,44 +1,71 @@
-import pandas as pd
-import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Agg")
 
+import matplotlib.pyplot as plt
+
+
 class Analytics:
     def __init__(self, db):
+
         self.db = db
 
+    # ================= STATS =================
     async def stats(self):
-        data = await self.db.get_all()
 
-        if not data:
-            return "No data"
+        total_words = await self.db.total_words()
 
-        df = pd.DataFrame(data)
+        total_users = await self.db.total_users()
 
-        top = df["word"].value_counts().head(5)
+        top_words = await self.db.top_words()
 
-        return (
-            f"📊 Stats\n"
-            f"Words: {len(df)}\n"
-            f"Users: {df['user_id'].nunique()}\n\n"
-            + "\n".join([f"{k}: {v}" for k, v in top.items()])
+        last = await self.db.last_searches()
+
+        text = (
+            f"📊 <b>Статистика</b>\n\n"
+
+            f"🔤 Слів: {total_words}\n"
+
+            f"👤 Користувачів: {total_users}\n\n"
+
+            f"🔥 <b>Топ слів:</b>\n"
         )
 
-    async def chart(self):
-        data = await self.db.get_all()
+        for word, count in top_words:
 
-        if not data:
+            text += f"• {word} — {count}\n"
+
+        text += "\n🕒 <b>Останні пошуки:</b>\n"
+
+        for item in last:
+
+            text += f"• {item['word']}\n"
+
+        return text
+
+    # ================= CHART =================
+    async def chart(self):
+
+        top_words = await self.db.top_words()
+
+        if not top_words:
             return None
 
-        df = pd.DataFrame(data)
-        top = df["word"].value_counts().head(5)
+        words = [x[0] for x in top_words]
 
-        plt.figure()
-        top.plot(kind="bar")
+        counts = [x[1] for x in top_words]
+
+        plt.figure(figsize=(8, 5))
+
+        plt.bar(words, counts)
+
+        plt.title("Top Words")
+
         plt.tight_layout()
 
         path = "chart.png"
+
         plt.savefig(path)
+
         plt.close()
 
         return path
