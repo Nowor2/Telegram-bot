@@ -1,2 +1,5 @@
-/bot.db
-/chart.png
+.venv/
+__pycache__/
+.env
+bot.db
+chart.png
