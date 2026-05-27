@@ -14,8 +14,8 @@ class Handlers:
         dp,
         cache,
         db,
-        dict_svc,
-        trans_svc,
+        dict_service,
+        trans_service,
         analytics,
         security,
         config
@@ -24,8 +24,8 @@ class Handlers:
         self.dp = dp
         self.cache = cache
         self.db = db
-        self.dict = dict_svc
-        self.trans = trans_svc
+        self.dict = dict_service
+        self.trans = trans_service
         self.analytics = analytics
         self.security = security
         self.config = config
@@ -34,6 +34,7 @@ class Handlers:
 
     # ================= REGISTER =================
     def register(self):
+
         self.dp.message(CommandStart())(
             self.start
         )
@@ -65,20 +66,21 @@ class Handlers:
         self.dp.callback_query(
             F.data.startswith("clear:")
         )(
-            self.clear
+            self.clear_cache
         )
 
     # ================= KEYBOARD =================
     def keyboard(self, word):
+
         builder = InlineKeyboardBuilder()
 
         builder.button(
-            text="🔄 Refresh",
+            text="🔄 Оновити",
             callback_data=f"refresh:{word}"
         )
 
         builder.button(
-            text="🗑 Clear Cache",
+            text="🗑 Очистити кеш",
             callback_data=f"clear:{word}"
         )
 
@@ -89,8 +91,9 @@ class Handlers:
     # ================= START =================
     async def start(self, m: Message):
 
+        # ---------- ADD USER ----------
         await self.db.add_user(
-    m.from_user.id
+            m.from_user.id
         )
 
         text = (
@@ -152,6 +155,7 @@ class Handlers:
     ):
 
         try:
+
             phonetic = data[0].get(
                 "phonetic",
                 "N/A"
@@ -163,7 +167,7 @@ class Handlers:
             )
 
             if not meanings:
-                return "❌ No meanings found"
+                return "❌ Значення не знайдено"
 
             meaning = meanings[0]
 
@@ -178,7 +182,7 @@ class Handlers:
             )
 
             if not definitions:
-                return "❌ No definitions found"
+                return "❌ Definition not found"
 
             definition = definitions[0].get(
                 "definition",
@@ -215,6 +219,7 @@ class Handlers:
             return text
 
         except Exception as e:
+
             print("FORMAT ERROR:", e)
 
             return "❌ Parse error"
@@ -222,14 +227,9 @@ class Handlers:
     # ================= WORD =================
     async def word(self, m: Message):
 
-        await self.db.log_word(
-    m.from_user.id,
-    word,
-    translation
-        )
-
         word = m.text.lower().strip()
 
+        # ---------- HASH ----------
         hashed = self.security.hash_text(
             word
         )
@@ -253,18 +253,22 @@ class Handlers:
 
             print("❌ CACHE MISS")
 
+            # ---------- API ----------
             data = await self.dict.get(word)
 
             if not data:
+
                 await m.answer(
-                    "❌ Word not found"
+                    "❌ Слово не знайдено"
                 )
+
                 return
 
             translation = await self.trans.translate(
                 word
             )
 
+            # ---------- SAVE CACHE ----------
             await self.cache.set(
                 key,
                 {
@@ -312,18 +316,22 @@ class Handlers:
             word
         )
 
+        # ---------- API ----------
         data = await self.dict.get(word)
 
         if not data:
+
             await call.answer(
                 "❌ Error"
             )
+
             return
 
         translation = await self.trans.translate(
             word
         )
 
+        # ---------- UPDATE CACHE ----------
         await self.cache.set(
             f"word:{hashed}",
             {
@@ -333,6 +341,7 @@ class Handlers:
             self.config.CACHE_TTL
         )
 
+        # ---------- FORMAT ----------
         text = self.format_word(
             word,
             translation,
@@ -340,6 +349,7 @@ class Handlers:
             "🌐 <b>Updated from API</b>"
         )
 
+        # ---------- UPDATE MESSAGE ----------
         await call.message.edit_text(
             text,
             parse_mode="HTML",
@@ -351,7 +361,7 @@ class Handlers:
         )
 
     # ================= CLEAR CACHE =================
-    async def clear(
+    async def clear_cache(
         self,
         call: CallbackQuery
     ):
@@ -373,9 +383,12 @@ class Handlers:
     # ================= STATS =================
     async def stats(self, m: Message):
 
-        stats = await self.analytics.stats()
+        text = await self.analytics.stats()
 
-        await m.answer(stats)
+        await m.answer(
+            text,
+            parse_mode="HTML"
+        )
 
     # ================= CHART =================
     async def chart(self, m: Message):
@@ -383,9 +396,11 @@ class Handlers:
         path = await self.analytics.chart()
 
         if not path:
+
             await m.answer(
-                "📭 No data yet"
+                "📭 Немає даних"
             )
+
             return
 
         await m.answer_photo(
