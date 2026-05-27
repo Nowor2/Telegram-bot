@@ -1,48 +1,24 @@
 English Learning Telegram Bot
 
-Сучасний асинхронний Telegram-бот для вивчення англійських слів з використанням:
+Сучасний асинхронний Telegram-бот для вивчення англійської мови з використанням:
 
-перекладу EN → UA
-
-визначення слова
-
-транскрипції
-
-прикладів використання
-
-Redis кешу
-
-SQLite бази даних
-
-SHA-256 хешування
-
-Fernet шифрування
-
-аналітики та графіків
-
-
-
----
-
+Redis Cache
+SQLite Database
+SQL Queries
+Encryption & Hashing
+Analytics System
+Async Architecture
 🚀 Основні можливості
-
 📘 Інформація про слово
 
 Бот показує:
 
-переклад
-
-транскрипцію
-
-частину мови
-
-визначення слова
-
-приклад використання
-
-
+🇺🇦 переклад
+🔊 транскрипцію
+📚 частину мови
+📖 визначення
+✏️ приклад використання
 Приклад:
-
 📘 Word:
 Apple
 
@@ -60,130 +36,140 @@ A round fruit with red or green skin.
 
 ✏️ Example:
 I eat an apple every morning.
+⚡ Кешування через Redis
 
+Бот використовує Redis для швидкого кешування слів.
 
----
+Перший запит:
+❌ CACHE MISS
+💾 CACHE SAVED
 
-🛠 Використані технології
+Бот звертається до API та зберігає результат.
 
-Технологія	Призначення
+Повторний запит:
+✅ CACHE HIT
 
-Aiogram	Telegram framework
-Redis	Кешування
-SQLite	База даних
-aiohttp	Async HTTP запити
-cryptography	Шифрування
-pandas	Аналітика
-matplotlib	Графіки
-dotenv	Змінні середовища
+Дані беруться з Redis без повторного API-запиту.
 
+🗄 База даних SQLite
 
+Проєкт використовує SQLite (bot.db).
 
----
+📋 Таблиці
+users
+Поле	Тип
+id	INTEGER
+telegram_id	TEXT
+created_at	TEXT
+history
+Поле	Тип
+id	INTEGER
+user_id	TEXT
+word	TEXT
+translation	TEXT
+created_at	TEXT
+🔥 SQL Queries
 
-🧠 Архітектура проєкту
+У проєкті використовуються:
 
-Telegram User
-       ↓
-Aiogram Bot
-       ↓
-Redis Cache (hashed keys)
-       ↓
-Dictionary API
-       ↓
-SQLite Database (encrypted)
-       ↓
-Analytics
-
-
----
-
+CREATE TABLE
+CREATE TABLE IF NOT EXISTS users (...)
+INSERT
+INSERT INTO history (...)
+VALUES (?, ?, ?, ?)
+SELECT
+SELECT word FROM history
+COUNT
+SELECT COUNT(*) FROM history
+ORDER BY
+ORDER BY id DESC
+LIMIT
+LIMIT 5
 🔐 Безпека
-
 SHA-256 Hashing
 
-Слова хешуються перед записом у Redis.
+Redis keys хешуються через SHA-256.
 
 Приклад:
-
 word:cbd31fe312a05a4718b4d67151a8c4052c9aa091f4012fbf5a77ba5da8df41ef
-
-
----
-
 Fernet Encryption
 
 У SQLite шифруються:
 
 user_id
-
 слово
-
 переклад
-
-
-Приклад encrypted даних:
-
+Приклад encrypted значення:
 gAAAAABq...
+📊 Аналітика
 
+Бот підтримує:
 
----
+статистику
+топ слів
+кількість користувачів
+останні пошуки
+графіки
+Команда /stats
 
+Показує:
+
+загальну кількість слів
+кількість користувачів
+топ слів
+останні пошуки
+Команда /chart
+
+Генерує графік популярних слів.
+
+🛠 Використані технології
+Технологія	Призначення
+Python	Backend
+Aiogram	Telegram Bot Framework
+Redis	Cache
+SQLite	Database
+aiosqlite	Async SQL
+aiohttp	HTTP requests
+cryptography	Encryption
+pandas	Analytics
+matplotlib	Charts
+🧠 Архітектура проєкту
+Telegram User
+       ↓
+Aiogram Bot
+       ↓
+Redis Cache
+       ↓
+Dictionary API
+       ↓
+SQLite Database
+       ↓
+Analytics System
 📦 Встановлення
-
 1. Клонування проєкту
-
 git clone <repository_url>
 cd project
-
-
----
-
 2. Створення virtual environment
-
 Windows
-
 python -m venv .venv
 .venv\Scripts\activate
-
 Linux/macOS
-
 python3 -m venv .venv
 source .venv/bin/activate
-
-
----
-
 3. Встановлення залежностей
-
 pip install -r requirements.txt
-
-
----
-
 ⚡ Встановлення Redis
-
-Через Docker
-
+Docker
 docker run -p 6379:6379 redis
-
-
----
-
 Перевірка Redis
-
 redis-cli ping
 
-Очікуваний результат:
+Результат:
 
 PONG
-
-
----
-
 ⚙️ Налаштування .env
 
-Створи файл .env
+Створи .env
 
 BOT_TOKEN=your_bot_token
 
@@ -195,104 +181,19 @@ DICTIONARY_API=https://api.dictionaryapi.dev/api/v2/entries/en/
 TRANSLATION_API=https://api.mymemory.translated.net/get
 
 SECRET_KEY=your_fernet_key
-
-
----
-
 🔑 Генерація SECRET_KEY
-
-Запусти один раз:
-
 from cryptography.fernet import Fernet
 
 print(Fernet.generate_key().decode())
-
-Встав отриманий ключ у .env
-
-
----
-
 ▶️ Запуск бота
-
 python main.py
-
-
----
-
-📌 Команди бота
-
+📌 Команди
 Команда	Опис
-
 /start	Запуск бота
 /help	Допомога
 /stats	Статистика
-/chart	Графік популярних слів
-
-
-
----
-
-⚡ Система кешування
-
-Перший запит слова
-
-❌ CACHE MISS
-💾 CACHE SAVED
-
-Бот звертається до API та зберігає результат у Redis.
-
-
----
-
-Повторний запит
-
-✅ CACHE HIT
-
-Дані беруться прямо з Redis без API.
-
-
----
-
-🗄 База даних
-
-SQLite база:
-
-bot.db
-
-Містить encrypted історію пошуку слів.
-
-
----
-
-📊 Аналітика
-
-Бот вміє показувати:
-
-кількість слів
-
-кількість користувачів
-
-топ популярних слів
-
-графіки
-
-
-Приклад:
-
-📊 Stats
-
-Words: 54
-Users: 8
-
-apple: 12
-hello: 9
-world: 6
-
-
----
-
+/chart	Графік
 📁 Структура проєкту
-
 project/
 │
 ├── main.py
@@ -300,34 +201,9 @@ project/
 ├── handlers.py
 ├── cache.py
 ├── db.py
-├── services.py
-├── security.py
 ├── analytics.py
+├── security.py
+├── services.py
 ├── requirements.txt
 ├── .env
 └── bot.db
-
-
----
-
-🔮 Можливі покращення
-
-У майбутньому можна додати:
-
-PostgreSQL
-
-Docker Compose
-
-Admin panel
-
-Web dashboard
-
-Авторизацію
-
-Rate limiting
-
-CI/CD
-
-Unit tests
-
-VPS deployment
