@@ -7,6 +7,8 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from censorship import is_censored
+
 
 class Handlers:
     def __init__(
@@ -228,6 +230,15 @@ class Handlers:
     async def word(self, m: Message):
 
         word = m.text.lower().strip()
+
+        # ---------- CENSOR ----------
+        if is_censored(word):
+            await m.answer(
+                "🚫 <b>Це навчальний проєкт.</b>\n\n"
+                "Будь ласка, поважай інших користувачів та надсилай лише навчальні слова.",
+                parse_mode="HTML"
+            )
+            return
 
         # ---------- HASH ----------
         hashed = self.security.hash_text(

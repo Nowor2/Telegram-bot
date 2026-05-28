@@ -1,6 +1,8 @@
 import aiosqlite
 from datetime import datetime
 
+from censorship import is_censored
+
 
 class Database:
     def __init__(
@@ -133,7 +135,8 @@ class Database:
                 row[0]
             )
 
-            words.append(decrypted)
+            if not is_censored(decrypted):
+                words.append(decrypted)
 
         return words
 
@@ -192,12 +195,13 @@ class Database:
 
         for row in rows:
 
-            result.append({
-                "word": self.security.decrypt(
-                    row[0]
-                ),
-                "created_at": row[1]
-            })
+            decrypted = self.security.decrypt(row[0])
+
+            if not is_censored(decrypted):
+                result.append({
+                    "word": decrypted,
+                    "created_at": row[1]
+                })
 
         return result
 
@@ -226,7 +230,8 @@ class Database:
                 row[0]
             )
 
-            words.append(decrypted)
+            if not is_censored(decrypted):
+                words.append(decrypted)
 
         stats = {}
 
